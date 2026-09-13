@@ -1,40 +1,51 @@
 # ==============================================================================
-# Stage 1: Build the Application
+# Stage 1: Build React Frontend
 # ==============================================================================
-FROM eclipse-temurin:17-jdk-jammy AS builder
+FROM node:20-alpine AS frontend-builder
+WORKDIR /frontend
 
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend/ ./
+RUN npm run build
+
+# ==============================================================================
+# Stage 2: Build Spring Boot Backend with Bundled Frontend
+# ==============================================================================
+FROM eclipse-temurin:17-jdk-jammy AS backend-builder
 WORKDIR /build
 
-# Copy Maven wrapper and pom.xml first for efficient layer caching
+# Copy Maven wrapper and pom.xml first for layer caching
 COPY mvnw mvnw.cmd pom.xml ./
 COPY .mvn .mvn
-
-# Pre-fetch project dependencies
 RUN ./mvnw dependency:go-offline -B || true
 
-# Copy source code and build production jar
+# Copy source code
 COPY src src
+
+# Copy compiled React frontend assets directly into Spring Boot static resources
+COPY --from=frontend-builder /frontend/dist src/main/resources/static/
+
+# Build unified fat JAR
 RUN ./mvnw clean package -DskipTests
 
 # ==============================================================================
-# Stage 2: Production Runtime Image
+# Stage 3: Production Runtime Image (Lightweight JRE)
 # ==============================================================================
 FROM eclipse-temurin:17-jre-jammy AS runner
-
 WORKDIR /app
 
-# Create a dedicated non-root user for security
+# Dedicated non-root user for enterprise container security
 RUN groupadd -r bankflow && useradd -r -g bankflow -m -d /app bankflow
 
-# Copy compiled fat JAR from builder stage
-COPY --from=builder /build/target/bankflow-backend-*.jar /app/bankflow-backend.jar
+COPY --from=backend-builder /build/target/bankflow-backend-*.jar /app/bankflow-backend.jar
 RUN chown -R bankflow:bankflow /app
 
 USER bankflow:bankflow
 
 EXPOSE 8080
 
-# Production JVM optimizations: container-aware memory allocation
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
   "-XX:MaxRAMPercentage=75.0", \

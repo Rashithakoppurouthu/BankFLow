@@ -80,8 +80,10 @@ public class SecurityConfig {
                         ).permitAll()
                         // Admin restricted endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Secured application endpoints
-                        .anyRequest().authenticated()
+                        // Secured API endpoints
+                        .requestMatchers("/api/**").authenticated()
+                        // Static frontend SPA resources (index.html, JS/CSS bundles, SPA routes)
+                        .anyRequest().permitAll()
                 );
 
         http.authenticationProvider(authenticationProvider());
