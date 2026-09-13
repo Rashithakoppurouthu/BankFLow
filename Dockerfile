@@ -19,6 +19,10 @@ WORKDIR /build
 # Copy Maven wrapper and pom.xml first for layer caching
 COPY mvnw mvnw.cmd pom.xml ./
 COPY .mvn .mvn
+
+# Fix Windows CRLF line-endings and ensure execution permission on Linux
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
+
 RUN ./mvnw dependency:go-offline -B || true
 
 # Copy source code
