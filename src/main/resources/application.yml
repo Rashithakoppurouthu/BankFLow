@@ -1,0 +1,42 @@
+# ==============================================================================
+# BankFlow Application Configuration - Base Profile (Common Settings)
+# ==============================================================================
+spring:
+  application:
+    name: bankflow-backend
+  
+  # Active profile: Defaults to 'dev' (MySQL).
+  # Can be overridden via SPRING_PROFILES_ACTIVE=h2 or SPRING_PROFILES_ACTIVE=prod
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # Jackson JSON Serialization Settings
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    default-property-inclusion: non_null
+
+# Server Configuration
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# JWT Security Configuration
+# IMPORTANT: In production, supply JWT_SECRET via environment variable (at least 256 bits / 32 chars)
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 hours (24 * 60 * 60 * 1000)
+
+# OpenAPI / Swagger UI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true

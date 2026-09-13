@@ -1,0 +1,33 @@
+# ==============================================================================
+# Production Profile (application-prod.yml) - Secure Containerized Production
+# ==============================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:bankflow}?createDatabaseIfNotExist=true&useSSL=true&requireSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      idle-timeout: 300000
+      connection-timeout: 20000
+      pool-name: BankFlowProdHikariCP
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: validate # Never auto-update schema in production; rely on migrations/DBA
+    show-sql: false
+    open-in-view: false
+
+logging:
+  level:
+    root: INFO
+    com.bankflow: INFO
+    org.springframework.security: WARN
+    org.hibernate: ERROR

@@ -1,0 +1,21 @@
+package com.bankflow.repository;
+
+import com.bankflow.entity.Beneficiary;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Repository for Beneficiary management.
+ */
+@Repository
+public interface BeneficiaryRepository extends JpaRepository<Beneficiary, Long> {
+
+    List<Beneficiary> findByUserId(Long userId);
+
+    Optional<Beneficiary> findByIdAndUserId(Long id, Long userId);
+
+    boolean existsByUserIdAndAccountNumber(Long userId, String accountNumber);
+}
